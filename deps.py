@@ -17,7 +17,9 @@ def EX2DB(filename, db_name, table_name, if_exists=None, db_index=False, index_c
 
 def DB2DF(db_name, table_name, sym):
     with sqlite3.connect(db_name) as db:
-        df = pandas.read_sql_query(f"select * from {table_name} where InstrumentIdentifier = '{sym}'", db)
+        df = pandas.read_sql_query(f"select * from {table_name} where InstrumentIdentifier = '{sym}'", db,index_col='CreatedOn')
+    if len(df)>0:
+        df.index = pandas.to_datetime(df.index)
     return df
 
 
@@ -25,10 +27,7 @@ def seg_data(df, start_h=9, start_m=15, end_h=15, end_m=30):
     start_time = time(start_h, start_m)
     end_time = time(end_h, end_m)
     dftouse = df.copy()
-    dftouse['CreatedOn'] = pandas.to_datetime(dftouse['CreatedOn']).copy()
-    filtered_df = dftouse[(dftouse['CreatedOn'].dt.time >= start_time) & (dftouse['CreatedOn'].dt.time <= end_time)]
-    filtered_df.reset_index(inplace=True, drop=True)
-    filtered_df.set_index('CreatedOn', inplace=True)
+    filtered_df = dftouse[(dftouse.index.time >= start_time) & (dftouse.index.time <= end_time)]
     return filtered_df
 
 
@@ -39,6 +38,7 @@ def change_df_tf(df, x_minutes=5):
         'Low': 'min',
         'CloseValue': 'last'
     }).ffill()
+
     return returning_df
 
 
@@ -80,5 +80,3 @@ def round_off_tick_size(b):
 #         return True
 #     else:
 #         return False
-
-
