@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 
 from .__BacktestModule import BTest, pandas
 
+
 # {"Ticker": self.ticker, "OrderDateTime": self.__curr_dt, "InstrumentPrice": ip,
 #                      "Quantity": self.quantity, "OrderPrice": ip * self.quantity,
 #                      "TPPrice": self.__curr_tp, "SLPrice": self.__curr_sl, "OrderSide": orderside,

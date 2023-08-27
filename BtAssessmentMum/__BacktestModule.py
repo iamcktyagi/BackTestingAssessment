@@ -100,6 +100,7 @@ class BTest:
     __row = None
     __entry_time = None
     __reverse = False
+    __pnl = 0
 
     def __post_init__(self):
         assert self.start_date != self.end_date, "Start and End date cannot be same."
@@ -177,6 +178,7 @@ class BTest:
         else:
             self.__signal = False
             return False
+
     def add_entry_trade(self):
         self.__sellprice = self.__curr_open
         if self.__curr_sl is not None or self.__curr_tp is not None:
@@ -214,10 +216,10 @@ class BTest:
         ip = self.__sellprice if orderside == 'Short' else self.__buyprice
         st = "Running" if orderside == 'Short' else "Closed"
         if orderside == 'Short':
-            self.pnl = 0
+            self.__pnl = 0
         else:
-            self.pnl = round((self.__sellprice - self.__buyprice) * self.quantity, 2)
-        self.capital = self.capital+self.pnl
+            self.__pnl = round((self.__sellprice - self.__buyprice) * self.quantity, 2)
+        self.capital = self.capital + self.__pnl
         print(f"Capital: {self.capital}") if self.log else None
         order_log = {"Ticker": self.ticker, "OrderDateTime": self.__curr_dt, "InstrumentPrice": ip,
                      "Quantity": self.quantity, "OrderPrice": ip * self.quantity,
@@ -285,6 +287,3 @@ class BTest:
     def run(self):
         self.__strategy()
         return self.__orderbook
-
-
-

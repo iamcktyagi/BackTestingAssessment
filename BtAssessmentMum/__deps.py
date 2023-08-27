@@ -53,30 +53,7 @@ def bb(df, window=20, std=1):
 
 
 def round_off_tick_size(b):
-    # z = b-b%.05
     ty = round(b / .05)
     amount = round(ty * .05, 4)
     return amount
 
-
-# print(round_off_tick_size(round(616.95 - ((616.95 * .2) / 100), 2)))
-
-#
-# def __Calc_PnL_Precision(self, df, sl_prices, target_prices):
-#     df = df.reset_index(drop=False)
-#     sl_indices = df.index[df['Low'] >= sl_prices]
-#     tp_indices = df.index[df['High'] <= target_prices]
-#     if sl_indices.any() and tp_indices.any():
-#         hit_index = min(min(sl_indices), min(tp_indices))
-#     elif sl_indices.any():
-#         hit_index = min(sl_indices)
-#     elif tp_indices.any():
-#         hit_index = min(tp_indices)
-#     else:
-#         hit_index = None
-#
-#     if hit_index:
-#         print(f"hit occurred at: {hit_index} {df.loc[hit_index, 'CreatedOn']}") if self.log else None
-#         return True
-#     else:
-#         return False
