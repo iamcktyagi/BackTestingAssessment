@@ -1,5 +1,4 @@
 import datetime
-from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 
 from deps import (EX2DB, DB2DF, seg_data, change_df_tf, bb, pandas, round_off_tick_size)
@@ -17,10 +16,10 @@ class BTest:
     ticker : str
         Symbol name or identifier.
 
-    start_date : str (yyyy-mm-dd hh:mm)
+    start_date : str (yyyy-mm-dd hh-mm)
         Start date and time for the backtest period.
 
-    end_date : str (yyyy-mm-dd hh:mm)
+    end_date : str (yyyy-mm-dd hh-mm)
         End date and time for the backtest period.
 
     bar_interval : str
@@ -198,10 +197,10 @@ class BTest:
         ip = self.__sellprice if orderside == 'Short' else self.__buyprice
         st = "Running" if orderside == 'Short' else "Closed"
         if orderside == 'Short':
-            self.capital = round(self.capital - (ip * self.quantity),2)
+            self.capital = round(self.capital - (ip * self.quantity), 2)
         else:
-            self.capital = round(self.capital + (ip * self.quantity),2)
-        order_log = {"Ticker":self.ticker,"OrderDateTime": self.__curr_dt, "InstrumentPrice": ip,
+            self.capital = round(self.capital + (ip * self.quantity), 2)
+        order_log = {"Ticker": self.ticker, "OrderDateTime": self.__curr_dt, "InstrumentPrice": ip,
                      "Quantity": self.quantity, "OrderPrice": ip * self.quantity,
                      "TPPrice": self.__curr_tp, "SLPrice": self.__curr_sl, "OrderSide": orderside,
                      "Status": st, "Reason": reason, "AmountRemaing": self.capital}
@@ -277,68 +276,3 @@ class BTest:
     def run(self):
         self.__strategy()
         return self.__orderbook
-
-
-# b = BTest(ticker='HDFCBANK',
-#           start_date='2023-07-28 09-15',
-#           end_date='2023-08-31 15-30',
-#           bar_interval='1min',
-#           quantity=10,
-#           capital=100000,
-#           stop_loss=.2,
-#           target=.2,
-#           change_bar_interval_at_start=True, log=True, pref_sl=True, ordertype='MIS')
-#
-# position = b.run()
-# adfg = pandas.DataFrame(position)
-# print(adfg.to_excel("positionN.xlsx"))
-
-class BT:
-    def __init__(self, ticker, start_date, end_date, bar_interval, quantity, capital, stop_loss, target,
-                 excel_source='',
-                 db_name='FastDb', table_name='minute_candle', if_exists='replace', change_bar_interval_at_start=False,
-                 log=False, pref_sl=True, ordertype='MIS'):
-        self.ticker = ticker
-        self.start_date = start_date
-        self.end_date = end_date
-        self.bar_interval = bar_interval
-        self.quantity = quantity
-        self.capital = capital
-        self.stop_loss = stop_loss
-        self.target = target
-        self.excel_source = excel_source
-        self.db_name = db_name
-        self.table_name = table_name
-        self.if_exists = if_exists
-        self.change_bar_interval_at_start = change_bar_interval_at_start
-        self.log = log
-        self.pref_sl = pref_sl
-        self.ordertype = ordertype
-
-    def run(self, ticker=None):
-        if ticker is not None:
-            self.ticker = ticker
-        b = BTest(ticker=ticker, start_date=self.start_date, end_date=self.end_date, bar_interval=self.bar_interval,
-                  quantity=self.quantity, capital=self.capital, stop_loss=self.stop_loss, target=self.target,
-                  excel_source=self.excel_source, db_name=self.db_name, table_name=self.table_name,
-                  if_exists=self.if_exists, change_bar_interval_at_start=self.change_bar_interval_at_start,
-                  log=self.log,
-                  pref_sl=self.pref_sl, ordertype=self.ordertype)
-        return b.run()
-
-    def runMulti(self, workers=5):
-        if isinstance(self.ticker, list):
-            with ThreadPoolExecutor(max_workers=workers) as executor:
-                results = executor.map(self.run, self.ticker)
-                return list(results)
-        else:
-            return self.run()
-
-
-bt = BT(ticker=['HDFCBANK', 'SBIN', 'BAJFINANCE'], start_date='2023-07-28 09-15', end_date='2023-08-31 15-30',
-        bar_interval='1min', quantity=1, capital=100000, stop_loss=.2, target=.2, change_bar_interval_at_start=True,
-        log=False, pref_sl=True, ordertype='MIS')
-
-a = bt.runMulti()
-print(a)
-print(pandas.DataFrame(a[0]))
