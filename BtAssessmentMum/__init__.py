@@ -1,4 +1,4 @@
-from .main import BT
+from .__main import BT
 
 
 __all__ = ['BT']

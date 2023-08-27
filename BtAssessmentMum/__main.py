@@ -51,6 +51,7 @@ class BT:
                     * 'High',
                     * 'Low',
                     * 'CloseValue'
+
             - OpenValue, High, Low, CloseValue are float values
             - CreatedOn column: Date format: yyyy-mm-dd hh:mm:ss
             - InstrumentIdentifier column: Ticker symbol for the asset
