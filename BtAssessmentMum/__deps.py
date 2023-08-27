@@ -1,5 +1,5 @@
 import sqlite3
-from datetime import timedelta, time
+from datetime import time
 
 import pandas
 
@@ -17,8 +17,9 @@ def EX2DB(filename, db_name, table_name, if_exists=None, db_index=False, index_c
 
 def DB2DF(db_name, table_name, sym):
     with sqlite3.connect(db_name) as db:
-        df = pandas.read_sql_query(f"select * from {table_name} where InstrumentIdentifier = '{sym}'", db,index_col='CreatedOn')
-    if len(df)>0:
+        df = pandas.read_sql_query(f"select * from {table_name} where InstrumentIdentifier = '{sym}'", db,
+                                   index_col='CreatedOn')
+    if len(df) > 0:
         df.index = pandas.to_datetime(df.index)
     return df
 
@@ -56,4 +57,3 @@ def round_off_tick_size(b):
     ty = round(b / .05)
     amount = round(ty * .05, 4)
     return amount
-
