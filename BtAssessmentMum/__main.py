@@ -139,4 +139,4 @@ class BT:
                 results_dict = {x: pandas.DataFrame.from_records(y) for x, y in zip(self.ticker, results)}
                 return results_dict
         else:
-            return self.__run()
+            return {self.ticker: pandas.DataFrame.from_records(self.__run())}

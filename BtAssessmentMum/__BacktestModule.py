@@ -1,7 +1,7 @@
 import datetime
 from dataclasses import dataclass, field
 
-from .__deps import (EX2DB, DB2DF, seg_data, change_df_tf, bb, pandas, round_off_tick_size)
+from BtAssessmentMum.__deps import (EX2DB, DB2DF, seg_data, change_df_tf, bb, pandas, round_off_tick_size)
 
 
 @dataclass
@@ -100,6 +100,8 @@ class BTest:
     __row = None
     __entry_time = None
     __reverse = False
+    __balMargin = None
+    __curr_pnl = None
 
     def __post_init__(self):
         assert self.start_date != self.end_date, "Start and End date cannot be same."
@@ -151,6 +153,23 @@ class BTest:
             return round(price - ((price * self.target) / 100), 2)
         return round(price + ((price * self.target) / 100), 2)
 
+    def m2m_statement(self):
+        if self.__trade_status is True and self.__sellprice is not None:
+            self.__curr_pnl = round(self.__sellprice - self.__curr_open, 2)
+            print(
+                f"Current PnL: {self.__curr_pnl} and Margin remaing is {self.__balMargin} and SellPrice is {self.__sellprice} and Open is {self.__curr_open}")
+            return self.__curr_pnl + self.__balMargin <= 0
+        else:
+            self.__curr_pnl = 0
+            return False
+
+    def margin_exit_trade(self):
+        reason = "Margin Exceeded"
+        self.__buyprice = self.__curr_open
+        self.add_order(orderside='Long', reason=reason)
+        print(f"Margin Exceeded [{reason}] @ {self.__curr_dt}-{self.__row}\n")
+        self.reset_values()
+
     def profit_statement(self):
         return self.__curr_tp >= self.__curr_open or self.__curr_tp >= self.__curr_low
 
@@ -170,7 +189,8 @@ class BTest:
 
     def entry_statement(self):
         dt_condition = self.__curr_dt.time() < datetime.time(15, 15)
-        return self.__signal is True and self.__trade_status is False and self.__curr_dt == self.__entry_time and dt_condition
+        capital_validation = self.capital >= (self.__curr_open * self.quantity)
+        return self.__signal is True and self.__trade_status is False and self.__curr_dt == self.__entry_time and dt_condition and capital_validation
 
     def trade_sig_time_validation(self):
         return self.__curr_dt + datetime.timedelta(minutes=self.__timeframe)
@@ -197,13 +217,13 @@ class BTest:
         ip = self.__sellprice if orderside == 'Short' else self.__buyprice
         st = "Running" if orderside == 'Short' else "Closed"
         if orderside == 'Short':
-            self.capital = round(self.capital - (ip * self.quantity), 2)
+            self.__balMargin = round(self.capital - (ip * self.quantity), 2)
         else:
-            self.capital = round(self.capital + (ip * self.quantity), 2)
+            self.__balMargin = round(self.__balMargin + (ip * self.quantity) + self.__curr_pnl, 2)
         order_log = {"Ticker": self.ticker, "OrderDateTime": self.__curr_dt, "InstrumentPrice": ip,
                      "Quantity": self.quantity, "OrderPrice": ip * self.quantity,
                      "TPPrice": self.__curr_tp, "SLPrice": self.__curr_sl, "OrderSide": orderside,
-                     "Status": st, "Reason": reason, "AmountRemaing": self.capital}
+                     "Status": st, "Reason": reason, "AmountRemaing": self.__balMargin}
         self.__orderbook.append(order_log)
         del order_log
 
@@ -255,6 +275,8 @@ class BTest:
             if all(not pandas.isna(x) for x in row.values()):
                 self.assign_values(row)
                 self.__curr_dt = date_index
+                if self.m2m_statement():
+                    self.margin_exit_trade()
                 if self.__reverse is True:
                     self.add_reversion_trade()
                 if self.entry_statement():
