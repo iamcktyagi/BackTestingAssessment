@@ -1,4 +1,5 @@
 import datetime
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 
 from deps import (EX2DB, DB2DF, seg_data, change_df_tf, bb, pandas, round_off_tick_size)
@@ -93,11 +94,13 @@ class BTest:
     __curr_open = None
     __curr_ub = None
     __df_dict = None
+    __sellprice = None
     __buyprice = None
     __curr_dt = None
     __last_candle_time = None
     __row = None
     __entry_time = None
+    __reverse = False
 
     def __post_init__(self):
         assert self.start_date != self.end_date, "Start and End date cannot be same."
@@ -123,6 +126,8 @@ class BTest:
         if self.excel_source != '':
             self.load_data()
         self.__df = DB2DF(db_name=self.db_name, table_name=self.table_name, sym=self.ticker).copy()
+        if len(self.__df) == 0:
+            raise Exception("No data found in database. Perhaps wrong symbol or date?")
         self.main_df = self.__df.copy()
         self.__df = self.__df[use_cols].copy()
         if self.change_bar_interval_at_start:
@@ -154,20 +159,25 @@ class BTest:
         return self.__curr_sl <= self.__curr_open or self.__curr_sl <= self.__curr_high
 
     def signal_statement(self):
-        dt = self.__curr_dt.replace(hour=15, minute=30)
+        m = 15 if self.ordertype == 'MIS' else 30
+        dt = self.__curr_dt.replace(hour=15, minute=m)
         last_sig_time = dt - datetime.timedelta(minutes=self.__timeframe)
         return (self.__curr_close > self.__curr_ub and
                 self.__trade_status is False and
                 self.__signal is False and self.__curr_dt.time() < last_sig_time.time())
 
+    def reversion_statement(self):
+        return self.__curr_close < self.__curr_ub and self.__trade_status is True
+
     def entry_statement(self):
-        return self.__signal is True and self.__trade_status is False and self.__curr_dt == self.__entry_time
+        dt_condition = self.__curr_dt.time() < datetime.time(15, 15)
+        return self.__signal is True and self.__trade_status is False and self.__curr_dt == self.__entry_time and dt_condition
 
     def trade_sig_time_validation(self):
         return self.__curr_dt + datetime.timedelta(minutes=self.__timeframe)
 
-    def mis_cnc_nrml(self):
-        if self.ordertype == 'MIS' and self.__curr_dt.time() >= datetime.time(15, 15):
+    def mis_square_off_statement(self):
+        if self.ordertype == 'MIS' and self.__curr_dt.time() >= datetime.time(15, 15) and self.__trade_status is True:
             return True
         return False
 
@@ -179,66 +189,75 @@ class BTest:
         self.__curr_high = row['High']
         self.__curr_close = row['CloseValue']
 
+    def reset_values(self):
+        self.__trade_status = False
+        self.__curr_sl = None
+        self.__curr_tp = None
+
     def add_order(self, orderside, reason):
-        order_log = {"OrderDateTime": self.__curr_dt, "OrderPrice": self.__buyprice,
+        ip = self.__sellprice if orderside == 'Short' else self.__buyprice
+        st = "Running" if orderside == 'Short' else "Closed"
+        if orderside == 'Short':
+            self.capital = round(self.capital - (ip * self.quantity),2)
+        else:
+            self.capital = round(self.capital + (ip * self.quantity),2)
+        order_log = {"Ticker":self.ticker,"OrderDateTime": self.__curr_dt, "InstrumentPrice": ip,
+                     "Quantity": self.quantity, "OrderPrice": ip * self.quantity,
                      "TPPrice": self.__curr_tp, "SLPrice": self.__curr_sl, "OrderSide": orderside,
-                     "Status": "Running" if orderside == 'Short' else "Closed", "Reason": reason}
+                     "Status": st, "Reason": reason, "AmountRemaing": self.capital}
         self.__orderbook.append(order_log)
         del order_log
 
     def add_entry_trade(self):
-        self.__buyprice = self.__curr_open
+        self.__sellprice = self.__curr_open
         if self.__curr_sl is not None or self.__curr_tp is not None:
             input("Error: SL or TP not None")
-        self.__curr_sl = round_off_tick_size(b.sl_cal(self.__buyprice, short=True))
-        self.__curr_tp = round_off_tick_size(b.target_cal(self.__buyprice, short=True))
+        self.__curr_sl = round_off_tick_size(self.sl_cal(self.__sellprice, short=True))
+        self.__curr_tp = round_off_tick_size(self.target_cal(self.__sellprice, short=True))
         self.__signal = False
         self.__trade_status = True
         self.add_order(orderside='Short', reason='Entry')
         print(
-            f"Short Ent @ {self.__curr_dt}-BP:{self.__buyprice} SL:{self.__curr_sl} TP:{self.__curr_tp}\n{self.__row}") if self.log else None
+            f"Short Ent @ {self.__curr_dt} -SP:{self.__sellprice} SL:{self.__curr_sl} TP:{self.__curr_tp}\n{self.__row}") if self.log else None
 
     def add_sl_trade(self):
-        reason = 'Open Breached' if self.__curr_sl > self.__curr_open else 'High Breached'
+        reason = "SL Hit"
+        self.__buyprice = self.__curr_sl
         self.add_order(orderside='Long', reason=reason)
         print(f"SL hit [{reason}] @ {self.__curr_dt}-{self.__row}\n") if self.log else None
-        self.__trade_status = False
-        self.__curr_sl = None
-        self.__curr_tp = None
+        self.reset_values()
 
     def add_profit_trade(self):
-        reason = 'Open Breached' if self.__curr_tp < self.__curr_open else 'Low Breached'
-        print(f"target hit [{reason}] @ {self.__curr_dt}-{self.__row}\n") if self.log else None
+        reason = "TP Hit"
+        self.__buyprice = self.__curr_tp
+        print(f"Target hit [{reason}] @ {self.__curr_dt}-{self.__row}\n") if self.log else None
         self.add_order(orderside='Long', reason=reason)
-        self.__trade_status = False
-        self.__curr_sl = None
-        self.__curr_tp = None
+        self.reset_values()
 
     def add_reversion_trade(self):
         reason = 'Trend Reversed'
+        self.__reverse = False
+        self.__buyprice = self.__curr_open
         print(f"Trend Rev @ {self.__curr_dt}-{self.__row} [{reason}] \n") if self.log else None
         self.add_order(orderside='Long', reason=reason)
-        self.__trade_status = False
-        self.__curr_sl = None
-        self.__curr_tp = None
+        self.reset_values()
 
     def auto_exit(self):
         reason = 'Auto SquaredOff'
+        self.__buyprice = self.__curr_open
         print(f"MIS @ {self.__curr_dt}-{self.__row} [{reason}] \n") if self.log else None
         self.add_order(orderside='Long', reason=reason)
-        self.__trade_status = False
-        self.__curr_sl = None
-        self.__curr_tp = None
+        self.reset_values()
 
-    def strategy(self):
+    def __strategy(self):
         self.__orderbook = []
         self.__curr_sl, self.__curr_tp, self.__signal, self.__trade_status = None, None, False, False
         for date_index, row in self.__df_dict.items():
-            # print(f"Processing {date_index} {row}")  # if self.log else None
-            # print(self.__curr_dt,self.__signal, self.__entry_time)
             if all(not pandas.isna(x) for x in row.values()):
                 self.assign_values(row)
                 self.__curr_dt = date_index
+                if self.__reverse is True:
+                    self.add_reversion_trade()
                 if self.entry_statement():
                     self.add_entry_trade()
                 if self.__trade_status is True:
@@ -246,30 +265,80 @@ class BTest:
                         self.add_sl_trade() if self.pref_sl is True else self.add_profit_trade() if self.profit_statement() else None
                     elif self.profit_statement():
                         self.add_profit_trade()
-                    if self.__curr_close < self.__curr_ub:
-                        self.add_reversion_trade()
-                    if self.mis_cnc_nrml():
-                        self.auto_exit()
+                if self.reversion_statement():
+                    self.__reverse = True
+                if self.mis_square_off_statement():
+                    self.auto_exit()
                 elif self.signal_statement():
                     self.__entry_time = self.trade_sig_time_validation()
                     self.__signal = True
-                    print(f'Short Sig @ {date_index}-{row}') if self.log else None
+                    print(f'Short Sig @ {date_index}-{row} {self.__entry_time}') if self.log else None
 
     def run(self):
-        self.strategy()
+        self.__strategy()
         return self.__orderbook
 
 
-b = BTest(ticker='SBIN',
-          start_date='2023-07-28 09-15',
-          end_date='2023-08-31 15-30',
-          bar_interval='1min',
-          quantity=1,
-          capital=100000,
-          stop_loss=.2,
-          target=.2,
-          change_bar_interval_at_start=True, log=False, pref_sl=True, ordertype='MIS')
+# b = BTest(ticker='HDFCBANK',
+#           start_date='2023-07-28 09-15',
+#           end_date='2023-08-31 15-30',
+#           bar_interval='1min',
+#           quantity=10,
+#           capital=100000,
+#           stop_loss=.2,
+#           target=.2,
+#           change_bar_interval_at_start=True, log=True, pref_sl=True, ordertype='MIS')
+#
+# position = b.run()
+# adfg = pandas.DataFrame(position)
+# print(adfg.to_excel("positionN.xlsx"))
 
-position = b.run()
-adfg = pandas.DataFrame(position)
-print(adfg.to_excel("position.xlsx"))
+class BT:
+    def __init__(self, ticker, start_date, end_date, bar_interval, quantity, capital, stop_loss, target,
+                 excel_source='',
+                 db_name='FastDb', table_name='minute_candle', if_exists='replace', change_bar_interval_at_start=False,
+                 log=False, pref_sl=True, ordertype='MIS'):
+        self.ticker = ticker
+        self.start_date = start_date
+        self.end_date = end_date
+        self.bar_interval = bar_interval
+        self.quantity = quantity
+        self.capital = capital
+        self.stop_loss = stop_loss
+        self.target = target
+        self.excel_source = excel_source
+        self.db_name = db_name
+        self.table_name = table_name
+        self.if_exists = if_exists
+        self.change_bar_interval_at_start = change_bar_interval_at_start
+        self.log = log
+        self.pref_sl = pref_sl
+        self.ordertype = ordertype
+
+    def run(self, ticker=None):
+        if ticker is not None:
+            self.ticker = ticker
+        b = BTest(ticker=ticker, start_date=self.start_date, end_date=self.end_date, bar_interval=self.bar_interval,
+                  quantity=self.quantity, capital=self.capital, stop_loss=self.stop_loss, target=self.target,
+                  excel_source=self.excel_source, db_name=self.db_name, table_name=self.table_name,
+                  if_exists=self.if_exists, change_bar_interval_at_start=self.change_bar_interval_at_start,
+                  log=self.log,
+                  pref_sl=self.pref_sl, ordertype=self.ordertype)
+        return b.run()
+
+    def runMulti(self, workers=5):
+        if isinstance(self.ticker, list):
+            with ThreadPoolExecutor(max_workers=workers) as executor:
+                results = executor.map(self.run, self.ticker)
+                return list(results)
+        else:
+            return self.run()
+
+
+bt = BT(ticker=['HDFCBANK', 'SBIN', 'BAJFINANCE'], start_date='2023-07-28 09-15', end_date='2023-08-31 15-30',
+        bar_interval='1min', quantity=1, capital=100000, stop_loss=.2, target=.2, change_bar_interval_at_start=True,
+        log=False, pref_sl=True, ordertype='MIS')
+
+a = bt.runMulti()
+print(a)
+print(pandas.DataFrame(a[0]))
