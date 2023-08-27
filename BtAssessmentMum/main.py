@@ -1,7 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 
-from BtAssessmentMum.BacktestModule import BTest, pandas
+from .__BacktestModule import BTest, pandas
 
 # {"Ticker": self.ticker, "OrderDateTime": self.__curr_dt, "InstrumentPrice": ip,
 #                      "Quantity": self.quantity, "OrderPrice": ip * self.quantity,
@@ -103,7 +103,7 @@ class BT:
 
     """
 
-    ticker: str
+    ticker: str or list
     start_date: str
     end_date: str
     bar_interval: str

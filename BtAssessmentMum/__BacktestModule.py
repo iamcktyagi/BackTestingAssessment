@@ -1,7 +1,7 @@
 import datetime
 from dataclasses import dataclass, field
 
-from deps import (EX2DB, DB2DF, seg_data, change_df_tf, bb, pandas, round_off_tick_size)
+from .__deps import (EX2DB, DB2DF, seg_data, change_df_tf, bb, pandas, round_off_tick_size)
 
 
 @dataclass
