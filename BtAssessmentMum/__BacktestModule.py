@@ -100,8 +100,6 @@ class BTest:
     __row = None
     __entry_time = None
     __reverse = False
-    __balMargin = None
-    __curr_pnl = None
 
     def __post_init__(self):
         assert self.start_date != self.end_date, "Start and End date cannot be same."
@@ -153,23 +151,6 @@ class BTest:
             return round(price - ((price * self.target) / 100), 2)
         return round(price + ((price * self.target) / 100), 2)
 
-    def m2m_statement(self):
-        if self.__trade_status is True and self.__sellprice is not None:
-            self.__curr_pnl = round(self.__sellprice - self.__curr_open, 2)
-            print(
-                f"Current PnL: {self.__curr_pnl} and Margin remaing is {self.__balMargin} and SellPrice is {self.__sellprice} and Open is {self.__curr_open}")
-            return self.__curr_pnl + self.__balMargin <= 0
-        else:
-            self.__curr_pnl = 0
-            return False
-
-    def margin_exit_trade(self):
-        reason = "Margin Exceeded"
-        self.__buyprice = self.__curr_open
-        self.add_order(orderside='Long', reason=reason)
-        print(f"Margin Exceeded [{reason}] @ {self.__curr_dt}-{self.__row}\n")
-        self.reset_values()
-
     def profit_statement(self):
         return self.__curr_tp >= self.__curr_open or self.__curr_tp >= self.__curr_low
 
@@ -190,7 +171,23 @@ class BTest:
     def entry_statement(self):
         dt_condition = self.__curr_dt.time() < datetime.time(15, 15)
         capital_validation = self.capital >= (self.__curr_open * self.quantity)
-        return self.__signal is True and self.__trade_status is False and self.__curr_dt == self.__entry_time and dt_condition and capital_validation
+        resp = self.__signal is True and self.__trade_status is False and self.__curr_dt == self.__entry_time and dt_condition and capital_validation
+        if resp:
+            return resp
+        else:
+            self.__signal = False
+            return False
+    def add_entry_trade(self):
+        self.__sellprice = self.__curr_open
+        if self.__curr_sl is not None or self.__curr_tp is not None:
+            input("Error: SL or TP not None")
+        self.__curr_sl = round_off_tick_size(self.sl_cal(self.__sellprice, short=True))
+        self.__curr_tp = round_off_tick_size(self.target_cal(self.__sellprice, short=True))
+        self.__signal = False
+        self.__trade_status = True
+        self.add_order(orderside='Short', reason='Entry')
+        print(
+            f"Short Ent @ {self.__curr_dt} -SP:{self.__sellprice} SL:{self.__curr_sl} TP:{self.__curr_tp}\n{self.__row}") if self.log else None
 
     def trade_sig_time_validation(self):
         return self.__curr_dt + datetime.timedelta(minutes=self.__timeframe)
@@ -217,27 +214,17 @@ class BTest:
         ip = self.__sellprice if orderside == 'Short' else self.__buyprice
         st = "Running" if orderside == 'Short' else "Closed"
         if orderside == 'Short':
-            self.__balMargin = round(self.capital - (ip * self.quantity), 2)
+            self.pnl = 0
         else:
-            self.__balMargin = round(self.__balMargin + (ip * self.quantity) + self.__curr_pnl, 2)
+            self.pnl = round((self.__sellprice - self.__buyprice) * self.quantity, 2)
+        self.capital = self.capital+self.pnl
+        print(f"Capital: {self.capital}") if self.log else None
         order_log = {"Ticker": self.ticker, "OrderDateTime": self.__curr_dt, "InstrumentPrice": ip,
                      "Quantity": self.quantity, "OrderPrice": ip * self.quantity,
                      "TPPrice": self.__curr_tp, "SLPrice": self.__curr_sl, "OrderSide": orderside,
-                     "Status": st, "Reason": reason, "AmountRemaing": self.__balMargin}
+                     "Status": st, "Reason": reason, "Balance": self.capital}
         self.__orderbook.append(order_log)
         del order_log
-
-    def add_entry_trade(self):
-        self.__sellprice = self.__curr_open
-        if self.__curr_sl is not None or self.__curr_tp is not None:
-            input("Error: SL or TP not None")
-        self.__curr_sl = round_off_tick_size(self.sl_cal(self.__sellprice, short=True))
-        self.__curr_tp = round_off_tick_size(self.target_cal(self.__sellprice, short=True))
-        self.__signal = False
-        self.__trade_status = True
-        self.add_order(orderside='Short', reason='Entry')
-        print(
-            f"Short Ent @ {self.__curr_dt} -SP:{self.__sellprice} SL:{self.__curr_sl} TP:{self.__curr_tp}\n{self.__row}") if self.log else None
 
     def add_sl_trade(self):
         reason = "SL Hit"
@@ -256,9 +243,11 @@ class BTest:
     def add_reversion_trade(self):
         reason = 'Trend Reversed'
         self.__reverse = False
+        self.__signal = False
         self.__buyprice = self.__curr_open
         print(f"Trend Rev @ {self.__curr_dt}-{self.__row} [{reason}] \n") if self.log else None
         self.add_order(orderside='Long', reason=reason)
+
         self.reset_values()
 
     def auto_exit(self):
@@ -275,8 +264,6 @@ class BTest:
             if all(not pandas.isna(x) for x in row.values()):
                 self.assign_values(row)
                 self.__curr_dt = date_index
-                if self.m2m_statement():
-                    self.margin_exit_trade()
                 if self.__reverse is True:
                     self.add_reversion_trade()
                 if self.entry_statement():
@@ -298,3 +285,6 @@ class BTest:
     def run(self):
         self.__strategy()
         return self.__orderbook
+
+
+
