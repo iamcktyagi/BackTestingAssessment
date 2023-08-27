@@ -1,6 +1,8 @@
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 
+import plotly.graph_objects as go
+
 from .__BacktestModule import BTest, pandas
 
 
@@ -121,23 +123,45 @@ class BT:
     log: bool = field(default=False)
     pref_sl: bool = field(default=True)
     ordertype: str = field(default='CNC')
+    df_dict = {}
+    results_dict = {}
 
     def __run(self, ticker=None):
         if ticker is None:
             ticker = self.ticker
-        b = BTest(ticker=ticker, start_date=self.start_date, end_date=self.end_date, bar_interval=self.bar_interval,
+        b = BTest(ticker=ticker, start_date=self.start_date, end_date=self.end_date,
+                  bar_interval=self.bar_interval,
                   quantity=self.quantity, capital=self.capital, stop_loss=self.stop_loss, target=self.target,
                   excel_source=self.excel_source, db_name=self.db_name, table_name=self.table_name,
                   if_exists=self.if_exists, change_bar_interval_at_start=self.change_bar_interval_at_start,
-                  log=self.log,
-                  pref_sl=self.pref_sl, ordertype=self.ordertype)
+                  log=self.log, pref_sl=self.pref_sl, ordertype=self.ordertype)
+        self.df_dict[ticker] = b.get_df()
         return b.run()
 
     def run(self, workers=5):
         if isinstance(self.ticker, list):
             with ThreadPoolExecutor(max_workers=workers) as executor:
                 results = executor.map(self.__run, self.ticker)
-                results_dict = {x: pandas.DataFrame.from_records(y) for x, y in zip(self.ticker, results)}
-                return results_dict
+                self.results_dict = {x: pandas.DataFrame.from_records(y) for x, y in zip(self.ticker, results)}
+                return self.results_dict
         else:
-            return {self.ticker: pandas.DataFrame.from_records(self.__run())}
+            results = {self.ticker: pandas.DataFrame.from_records(self.__run())}
+            return self.results_dict
+
+    def get_df_in_dict(self):
+        return self.df_dict
+
+    def plot_cumpnl(self, sym_name):
+        equity_df = self.results_dict[sym_name].copy()
+        equity_df.reset_index(inplace=True, drop=True)
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=equity_df.index,
+                                 y=equity_df['Balance'],
+                                 hoverinfo='y+text',
+                                 mode='lines',
+                                 name='Cumulative Equity',
+                                 hovertext=equity_df['OrderDateTime']))
+        fig.update_layout(title='Equity Curve',
+                          xaxis_title='No. of Trade',
+                          yaxis_title='Cumulative P&L')
+        return fig

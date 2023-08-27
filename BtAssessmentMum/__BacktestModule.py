@@ -221,10 +221,11 @@ class BTest:
             self.__pnl = round((self.__sellprice - self.__buyprice) * self.quantity, 2)
         self.capital = self.capital + self.__pnl
         print(f"Capital: {self.capital}") if self.log else None
+        pnl_to_add = self.__pnl if orderside == 'Long' else None
         order_log = {"Ticker": self.ticker, "OrderDateTime": self.__curr_dt, "InstrumentPrice": ip,
                      "Quantity": self.quantity, "OrderPrice": ip * self.quantity,
                      "TPPrice": self.__curr_tp, "SLPrice": self.__curr_sl, "OrderSide": orderside,
-                     "Status": st, "Reason": reason, "Balance": self.capital}
+                     "Status": st, "Reason": reason, "Balance": self.capital, "PnL": pnl_to_add}
         self.__orderbook.append(order_log)
         del order_log
 
