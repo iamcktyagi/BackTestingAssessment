@@ -95,44 +95,30 @@ should be able to handle missing bars
 
 ## **Points will be rewarded on the following:**
 
-*• Accuracy of the solution*
+• Accuracy of the solution
 
-*• Speed of execution*
+• Speed of execution
 
-*• Ease of understanding of code*
+• Ease of understanding of code
 
-**Submission**
+## **Submission**
 
 Candidate should submit a python script and a readme.pdf that contains
 
 • Approach taken and algorithm used
 
-
 • All the assumptions made (over and above those provided above)
-
 
 • How was data issues handled
 
-**Bonus Points**
-
-
-
-<a name="br3"></a> 
+## **Bonus Points**
 
 • Modify function above to also take order type as input. The other order type can be
-
 MIS (intraday). Note that in MIS, trades are squared off at the open of last bar.
 
-
 • Modify the function above to take a generic signal as input (instead of UBL) and
-
 trade rules.
 
-
 • Build a trading strategy that can take positions in any of the tickers in Nifty 50 (within
-
 capital constraint). Output all the trades, P&L and capital growth curve and final IRR
-
 of this strategy.
-
-
