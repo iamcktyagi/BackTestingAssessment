@@ -21,9 +21,13 @@ BUY <quantity> shares when “close” crosses below UBB(20,1,0) or at stop loss
 ### **Assumptions**
 
 1\. Trading is assumed to be done on candlesticks. Trading can be done on any of 1-min, 5-min, 15-min, 1-hour or 1-day bars.
+
 2\. There are no transaction costs and slippages involved
+
 3\. Trading will happen between market hours i.e., 09:15 to 03:30
+
 4\. Orders are placed in CNC code. We will assume that broker allows short selling in CNC code.
+
 5\. No interest is earned on cash
 
 ## **Implementation**
@@ -33,12 +37,19 @@ You are provided with an Excel that contains 1-mintue candle data for tickers in
 ### We need to build a function that takes the following inputs:
 
 1\. Ticker – ticker
+
 2\. Back test start date – start\_date
+
 3\. Back test end date – end\_date
+
 4\. Trade interval (1M, 5M, 15M and so on) – bar\_interval
+
 5\. Quantity of shares to be bought/sold for each ticker - quantity
+
 6\. Starting capital - capital
+
 7\. Stop loss (in %) for exit – stop\_loss
+
 8\. Target Profit (in %) for exit – target\_profit
 
 **The function should output the following:**
