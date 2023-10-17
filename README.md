@@ -12,27 +12,35 @@ The purpose is to build a back testing engine for testing Bollinger Mean Reversi
 
 ### **Entry**
 
-SELL <quantity> shares when “close” crosses above UBB(20,1,0) at <bar\_interval> candle interval using candlestick chart. Enter trade between 09:15 to 3:30. Note that if you are working with 15-min bars, you can enter last trade at 3:15 PM.
+SELL <quantity> shares when “close” crosses above UBB(20,1,0) at <bar\_interval> 
+candle interval using candlestick chart. 
+Enter trade between 09:15 to 3:30. 
+Note that if you are working with 15-min bars, you can enter last trade at 3:15 PM.
 
 ### **Exit:**
 
-BUY <quantity> shares when “close” crosses below UBB(20,1,0) or at stop loss % of <stop\_loss> or target profit % of <target\_profit> at <bar\_interval> candle interval using candlestick chart.
+BUY <quantity> shares when “close” crosses below UBB(20,1,0) or at stop loss % of <stop\_loss> 
+or target profit % of <target\_profit> at <bar\_interval> candle interval using candlestick chart.
 
 ### **Assumptions**
 
-1\. Trading is assumed to be done on candlesticks. Trading can be done on any of 1-min, 5-min, 15-min, 1-hour or 1-day bars.
+1\. Trading is assumed to be done on candlesticks. 
+Trading can be done on any of 1-min, 5-min, 15-min, 1-hour or 1-day bars.
 
 2\. There are no transaction costs and slippages involved
 
 3\. Trading will happen between market hours i.e., 09:15 to 03:30
 
-4\. Orders are placed in CNC code. We will assume that broker allows short selling in CNC code.
+4\. Orders are placed in CNC code. 
+We will assume that broker allows short selling in CNC code.
 
 5\. No interest is earned on cash
 
 ## **Implementation**
 
-You are provided with an Excel that contains 1-mintue candle data for tickers in Nifty 50 from 28<sup>th</sup> July 2023 to 11<sup>th</sup> August up till 12:44 PM. More on the data explained later. 
+You are provided with an Excel that contains 1-mintue candle data for tickers in Nifty 50
+from 28<sup>th</sup> July 2023 to 11<sup>th</sup> August up till 12:44 PM. 
+More on the data explained later. 
 
 ### We need to build a function that takes the following inputs:
 
@@ -54,7 +62,6 @@ You are provided with an Excel that contains 1-mintue candle data for tickers in
 
 ### **The function should output the following:**
 
-
 • A summary table containing data like – No. of trades, Number of wins, Number of
 losses, Max loss, Avg gain/winning trade, Avg loss/losing trade and cumulative P&L
 
@@ -67,7 +74,7 @@ reason – stop loss, signal, book profit) and type of transaction
 
 ## **The data set**
 
-You are provided with a excel that contains 1-mintue candle data for tickers in Nifty 50 from
+You are provided with an Excel that contains 1-mintue candle data for tickers in Nifty 50 from
 28<sup>th</sup> July 2023 to 11<sup>th</sup> August up till 12:44 PM. Each row is indexed by ticker and time stamp
 – CreatedOn. This is the starting time of the bar. For example, row corresponding to
 RELIANCE and 28/07/23 9:15 is data for the first minute bar (9:15 – 9:16).
