@@ -18,7 +18,7 @@ SELL <quantity> shares when “close” crosses above UBB(20,1,0) at <bar\_inter
 
 BUY <quantity> shares when “close” crosses below UBB(20,1,0) or at stop loss % of <stop\_loss> or target profit % of <target\_profit> at <bar\_interval> candle interval using candlestick chart.
 
-## **Assumptions**
+### **Assumptions**
 
 1\. Trading is assumed to be done on candlesticks. Trading can be done on any of 1-min, 5-min, 15-min, 1-hour or 1-day bars.
 2\. There are no transaction costs and slippages involved
@@ -26,28 +26,19 @@ BUY <quantity> shares when “close” crosses below UBB(20,1,0) or at stop loss
 4\. Orders are placed in CNC code. We will assume that broker allows short selling in CNC code.
 5\. No interest is earned on cash
 
-**Implementation**
+## **Implementation**
 
-You are provided with an excel that contains 1-mintue candle data for tickers in Nifty 50 from
+You are provided with an Excel that contains 1-mintue candle data for tickers in Nifty 50 from 28<sup>th</sup> July 2023 to 11<sup>th</sup> August up till 12:44 PM. More on the data explained later. 
 
-28<sup>th</sup> July 2023 to 11<sup>th</sup> August up till 12:44 PM. More on the data explained later
-
-We need to build a function that takes the following inputs:
+### We need to build a function that takes the following inputs:
 
 1\. Ticker – ticker
-
 2\. Back test start date – start\_date
-
 3\. Back test end date – end\_date
-
 4\. Trade interval (1M, 5M, 15M and so on) – bar\_interval
-
 5\. Quantity of shares to be bought/sold for each ticker - quantity
-
 6\. Starting capital - capital
-
 7\. Stop loss (in %) for exit – stop\_loss
-
 8\. Target Profit (in %) for exit – target\_profit
 
 **The function should output the following:**
