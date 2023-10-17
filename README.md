@@ -3,7 +3,7 @@ This assessment was given to me by my current employer, I hope y'all can learn s
 
 I have tried to make the code:
 
-  * *fast | robust | readable | modular | reusable | extendable | maintainable | scalable | efficient | event-driven | object-oriented*
+  * *fast | robust | readable | modular | reusable | extendable | maintainable | scalable | efficient | event-driven* 
 
 **And, I am sure there are many ways to improve the code.**
 
