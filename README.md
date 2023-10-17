@@ -93,16 +93,13 @@ intelligently.
 • Missing bars – there will be instances of missing bars. Again, our back testing engine
 should be able to handle missing bars
 
-**Points will be rewarded on the following:**
+## **Points will be rewarded on the following:**
 
-• Accuracy of the solution
- 
+*• Accuracy of the solution*
 
-• Speed of execution
+*• Speed of execution*
 
-
-• Ease of understanding of code
-
+*• Ease of understanding of code*
 
 **Submission**
 
