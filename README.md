@@ -87,7 +87,7 @@ intelligently.
 
 #### *In the current data set, you will have 2 issues:*
 
-• Bar start time not exactly at minute interval. You will note start times like
+• Bar start time not exactly at minute interval. You will not start times like
 28/07/2023 9:07:01 AM. We need to handle this.
 
 • Missing bars – there will be instances of missing bars. Again, our back testing engine
