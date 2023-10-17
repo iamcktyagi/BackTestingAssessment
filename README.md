@@ -1,20 +1,20 @@
 # BackTestingAssessment
 This assessment was given to me by my current employer, I hope y'all can learn something from it, like I learnt from the community.
 
-Iake the code as readable as possible,I have tried to make the code:
+I have tried to make the code:
 
-1. fast
-2. robust
-3. readable
-4. modular
-5. reusable
-6. extendable
-7. maintainable
-8. scalable
-9. efficient
-10. effective
-11. event-driven
-12. object-oriented
+  * fast
+  * robust
+  * readable
+  * modular
+  * reusable
+  * extendable
+  * maintainable
+  * scalable
+  * efficient
+  * effective
+  * event-driven
+  * object-oriented
 
 * And, I am sure there are many ways to improve the code.*
 
