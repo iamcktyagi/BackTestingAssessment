@@ -8,26 +8,22 @@ Classes are well commented and functions have self-explanatory names, but I coul
 
 The purpose is to build a back testing engine for testing Bollinger Mean Reversion strategy.
 
-Here is the strategy:
+**Here is the strategy:**
 
-**Entry**
+    **Entry**
 
-SELL <quantity> shares when “close” crosses above UBB(20,1,0) at at < bar\_interval >candle interval using candlestick chart. Enter trade between 09:15 to 3:30. Note that if you are working with 15-min bars, you can enter last trade at 3:15 PM.
+        SELL <quantity> shares when “close” crosses above UBB(20,1,0) at <bar\_interval> candle interval using candlestick chart. Enter trade between 09:15 to 3:30. Note that if you are working with 15-min bars, you can enter last trade at 3:15 PM.
 
-**Exit:**
+    **Exit:**
 
-BUY <quantity> shares when “close” crosses below UBB(20,1,0) or at stop loss % of <stop\_loss> or target profit % of < target\_profit > at < bar\_interval> candle interval using candlestick chart.
+        BUY <quantity> shares when “close” crosses below UBB(20,1,0) or at stop loss % of <stop\_loss> or target profit % of <target\_profit> at <bar\_interval> candle interval using candlestick chart.
 
 **Assumptions**
 
 1\. Trading is assumed to be done on candlesticks. Trading can be done on any of 1-min, 5-min, 15-min, 1-hour or 1-day bars.
-
 2\. There are no transaction costs and slippages involved
-
 3\. Trading will happen between market hours i.e., 09:15 to 03:30
-
 4\. Orders are placed in CNC code. We will assume that broker allows short selling in CNC code.
-
 5\. No interest is earned on cash
 
 **Implementation**
