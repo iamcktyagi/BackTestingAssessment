@@ -67,7 +67,7 @@ We need to build a function that takes the following inputs:
 
 8\. Target Profit (in %) for exit – target\_profit
 
-The function should output the following:
+**The function should output the following:**
 
 
 
@@ -101,7 +101,7 @@ You are provided with a excel that contains 1-mintue candle data for tickers in 
 
 RELIANCE and 28/07/23 9:15 is data for the first minute bar (9:15 – 9:16).
 
-Issues with data:
+**Issues with data:**
 
 You will always face issues with data in form of missing bars and incorrect data even in real
 
@@ -111,47 +111,36 @@ intelligently.
 
 In the current data set, you will have 2 issues:
 
-•
-
-•
-
-Bar start time not exactly at minute interval. You will note start times like
+• Bar start time not exactly at minute interval. You will note start times like
 
 28/07/2023 9:07:01 AM. We need to handle this.
 
-Missing bars – there will be instances of missing bars. Again, our back testing engine
+• Missing bars – there will be instances of missing bars. Again, our back testing engine
 
 should be able to handle missing bars
 
 **Points will be rewarded on the following:**
 
-•
+• Accuracy of the solution
+ 
 
-•
+• Speed of execution
 
-•
 
-Accuracy of the solution
+• Ease of understanding of code
 
-Speed of execution
-
-Ease of understanding of code
 
 **Submission**
 
 Candidate should submit a python script and a readme.pdf that contains
 
-•
+• Approach taken and algorithm used
 
-•
 
-•
+• All the assumptions made (over and above those provided above)
 
-Approach taken and algorithm used
 
-All the assumptions made (over and above those provided above)
-
-How was data issues handled
+• How was data issues handled
 
 **Bonus Points**
 
@@ -159,21 +148,17 @@ How was data issues handled
 
 <a name="br3"></a> 
 
-•
-
-•
-
-•
-
-Modify function above to also take order type as input. The other order type can be
+• Modify function above to also take order type as input. The other order type can be
 
 MIS (intraday). Note that in MIS, trades are squared off at the open of last bar.
 
-Modify the function above to take a generic signal as input (instead of UBL) and
+
+• Modify the function above to take a generic signal as input (instead of UBL) and
 
 trade rules.
 
-Build a trading strategy that can take positions in any of the tickers in Nifty 50 (within
+
+• Build a trading strategy that can take positions in any of the tickers in Nifty 50 (within
 
 capital constraint). Output all the trades, P&L and capital growth curve and final IRR
 
