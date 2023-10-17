@@ -8,15 +8,15 @@ Classes are well commented and functions have self-explanatory names, but I coul
 
 The purpose is to build a back testing engine for testing Bollinger Mean Reversion strategy.
 
-**Here is the strategy:**
+# **Here is the strategy:**
 
-    **Entry**
+## **Entry**
 
-        SELL <quantity> shares when “close” crosses above UBB(20,1,0) at <bar\_interval> candle interval using candlestick chart. Enter trade between 09:15 to 3:30. Note that if you are working with 15-min bars, you can enter last trade at 3:15 PM.
+SELL <quantity> shares when “close” crosses above UBB(20,1,0) at <bar\_interval> candle interval using candlestick chart. Enter trade between 09:15 to 3:30. Note that if you are working with 15-min bars, you can enter last trade at 3:15 PM.
 
-    **Exit:**
+##**Exit:**
 
-        BUY <quantity> shares when “close” crosses below UBB(20,1,0) or at stop loss % of <stop\_loss> or target profit % of <target\_profit> at <bar\_interval> candle interval using candlestick chart.
+BUY <quantity> shares when “close” crosses below UBB(20,1,0) or at stop loss % of <stop\_loss> or target profit % of <target\_profit> at <bar\_interval> candle interval using candlestick chart.
 
 **Assumptions**
 
