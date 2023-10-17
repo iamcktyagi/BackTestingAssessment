@@ -1,10 +1,25 @@
 # BackTestingAssessment
-Classes are well commented and functions have self-explanatory names, but I could not find any time to comment the functions.
+This assessment was given to me by my current employer, I hope y'all can learn something from it, like I learnt from the community.
+
+Iake the code as readable as possible,I have tried to make the code:
+
+1. fast
+2. robust
+3. readable
+4. modular
+5. reusable
+6. extendable
+7. maintainable
+8. scalable
+9. efficient
+10. effective
+11. event-driven
+12. object-oriented
+
+* And, I am sure there are many ways to improve the code.*
 
 
-<a name="br1"></a> 
-
-**Problem Statement**
+# **Problem Statement**
 
 The purpose is to build a back testing engine for testing Bollinger Mean Reversion strategy.
 
