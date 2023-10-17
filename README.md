@@ -73,25 +73,23 @@ The function should output the following:
 
 <a name="br2"></a> 
 
-•
-
-•
-
-A summary table containing data like – No. of trades, Number of wins, Number of
+• A summary table containing data like – No. of trades, Number of wins, Number of
 
 losses, Max loss, Avg gain/winning trade, Avg loss/losing trade and cumulative P&L
 
-A transaction summary of all trades including entries and exits (along with exit
+
+• A transaction summary of all trades including entries and exits (along with exit
 
 reason – stop loss, signal, book profit) and type of transaction
 
-A candlestick plot with entries and exits shown
 
-•
 
-•
 
-A plot of cumulative P&L
+
+• A candlestick plot with entries and exits shown
+
+
+• A plot of cumulative P&L
 
 **The data set**
 
