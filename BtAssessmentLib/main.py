@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 
 import plotly.graph_objects as go
 
-from .__BacktestModule import BTest, pandas
+from BtAssessmentLib.BacktestModule import BTest, pandas
 
 
 # {"Ticker": self.ticker, "OrderDateTime": self.__curr_dt, "InstrumentPrice": ip,

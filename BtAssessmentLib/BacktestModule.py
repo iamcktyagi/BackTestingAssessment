@@ -1,7 +1,7 @@
 import datetime
 from dataclasses import dataclass, field
 
-from BtAssessmentMum.__deps import (EX2DB, DB2DF, seg_data, change_df_tf, bb, pandas, round_off_tick_size)
+from BtAssessmentLib.deps import (EX2DB, DB2DF, seg_data, change_df_tf, bb, pandas, round_off_tick_size)
 
 
 @dataclass
@@ -9,7 +9,8 @@ class BTest:
     """
     BTest - Backtesting Configuration Class
 
-    This class represents the configuration for a backtesting process using historical price data. It defines various parameters and options required for the backtest.
+    This class represents the configuration for a backtesting process using historical price data.
+     It defines various parameters and options required for the backtest.
 
     Parameters:
     -----------
@@ -172,7 +173,8 @@ class BTest:
     def entry_statement(self):
         dt_condition = self.__curr_dt.time() < datetime.time(15, 15)
         capital_validation = self.capital >= (self.__curr_open * self.quantity)
-        resp = self.__signal is True and self.__trade_status is False and self.__curr_dt == self.__entry_time and dt_condition and capital_validation
+        resp = (self.__signal is True and self.__trade_status is False and
+                self.__curr_dt == self.__entry_time and dt_condition and capital_validation)
         if resp:
             return resp
         else:
@@ -189,7 +191,8 @@ class BTest:
         self.__trade_status = True
         self.add_order(orderside='Short', reason='Entry')
         print(
-            f"Short Ent @ {self.__curr_dt} -SP:{self.__sellprice} SL:{self.__curr_sl} TP:{self.__curr_tp}\n{self.__row}") if self.log else None
+            f"Short Ent @ {self.__curr_dt} -SP:{self.__sellprice} "
+            f"SL:{self.__curr_sl} TP:{self.__curr_tp}\n{self.__row}") if self.log else None
 
     def trade_sig_time_validation(self):
         return self.__curr_dt + datetime.timedelta(minutes=self.__timeframe)
@@ -273,7 +276,8 @@ class BTest:
                     self.add_entry_trade()
                 if self.__trade_status is True:
                     if self.loss_statement():
-                        self.add_sl_trade() if self.pref_sl is True else self.add_profit_trade() if self.profit_statement() else None
+                        self.add_sl_trade() if self.pref_sl is True else\
+                            self.add_profit_trade() if self.profit_statement() else None
                     elif self.profit_statement():
                         self.add_profit_trade()
                 if self.reversion_statement():
